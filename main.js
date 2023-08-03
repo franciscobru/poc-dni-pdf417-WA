@@ -140,18 +140,27 @@ const parseResult = _text => {
 }
 
 const getDefaultVideoDevice = devices => {
-  console.log(devices)
   const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if( devices.length === 1 || !devices[1]) {
-    return devices[0];
-  }
+  let frontCamera, backCamera;
 
-  if( iOS ) {
-    return devices[0];
+  devices.forEach(function(device) {
+    if (device.kind === 'videoinput') {
+      if (device.label.toLowerCase().includes('front')) {
+        frontCamera = device.deviceId;
+      } else if (device.label.toLowerCase().includes('back')) {
+        backCamera = device.deviceId;
+      }
+    }
+  });
+
+  if (iOS) {
+    // Prefer the back camera on iOS devices
+    return backCamera || frontCamera || devices[0].deviceId;
   } else {
-    return devices[1];
+    // Prefer the front camera on Android and other devices
+    return frontCamera || backCamera || devices[0].deviceId;
   }
-}
+};
 
 const startWebcam = () => { 
   //----------------------------------------------------------------------
